@@ -10,7 +10,7 @@ public class InstantTrackerController : SampleController
 	public Text HeightLabel;
 	public Text ScaleLabel;
 
-    public Material mat;
+    //public Material mat;
     private Transform model;
     private Gyroscope gyro;
 
@@ -75,7 +75,7 @@ public class InstantTrackerController : SampleController
 			// Create object
 			GameObject modelPrefab = Models[modelIndex];
 			model = Instantiate(modelPrefab).transform;
-            model.GetComponentInChildren<MeshRenderer>().material = mat;
+            //model.GetComponentInChildren<MeshRenderer>().material = mat;
             _activeModels.Add(model.gameObject);
 			// Set model position at touch position
 			var cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
