@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/Wikitude/Samples/Scenes/Client Recognition - Instant Tracking.unity
+  isLoaded: 1
+  isActive: 1
