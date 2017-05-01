@@ -2,8 +2,8 @@
 
 public class GridRenderer : MonoBehaviour 
 {
-	private static Color TargetColor = new Color(1.0f, 0.525f, 0, 1.0f);
-	private static Color GridColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+	private static Color TargetColor = new Color(1.0f, 0.525f, 0, 0.5f);
+	private static Color GridColor = new Color(1.0f, 1.0f, 1.0f, 0.5f);
 	private static Color MainLineColor = GridColor * 0.9f;
 	private static Color UnitLineColor = GridColor * 0.75f;
 
@@ -38,10 +38,10 @@ public class GridRenderer : MonoBehaviour
 		_lineMaterial.SetPass(0);
 		GL.Begin(GL.LINES);
 
-		RenderGrid(Vector3.forward, Vector3.right);
-		RenderGrid(Vector3.right, Vector3.forward);
+        RenderGrid(Vector3.forward, Vector3.right);
+        RenderGrid(Vector3.right, Vector3.forward);
 
-		RenderLine(Vector3.forward,  Vector3.zero, TargetColor, TargetSize);
+        RenderLine(Vector3.forward,  Vector3.zero, TargetColor, TargetSize);
 		RenderLine(Vector3.right,  Vector3.zero, TargetColor, TargetSize);
 
 		GL.End();

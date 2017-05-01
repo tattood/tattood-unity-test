@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Wikitude;
+using UnityEngine.UI;
 
 public class InstantTrackerController : SampleController 
 {
@@ -15,8 +16,10 @@ public class InstantTrackerController : SampleController
     private Gyroscope gyro;
 
 	public InstantTracker Tracker;
-	
-	public List<Button> Buttons;
+    public GameObject Trackable;
+    public Text x_t, y_t, z_t, modelPlacementText;
+
+    public List<Button> Buttons;
 	public List<GameObject> Models;
 
 	public Image ActivityIndicator;
@@ -38,7 +41,12 @@ public class InstantTrackerController : SampleController
 			return _activeModels;
 		}
 	}
-
+    //public GameObject initialModel;
+    //void Start()
+    //{
+    //    Quaternion initalModelRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(-Camera.main.transform.forward, Vector3.up), Vector3.up);
+    //    initialModel.transform.rotation = initalModelRotation;
+    //}
 	private void Awake() {
 		Application.targetFrameRate = 60;
 
@@ -50,27 +58,190 @@ public class InstantTrackerController : SampleController
             gyro.enabled = true;
         }
     }
-
+    private void Start()
+    {
+        OnHeightValueChanged(2f);
+    }
+    float yRotation, xRotation, zRotation;
     private void Update()
     {
-        if (gyro != null)
+        if (Input.gyro != null)
         {
-            //model.rotation = gyro.attitude;
+            Debug.Log("x: "+ Input.gyro.attitude.eulerAngles.x + " y: " + Input.gyro.attitude.eulerAngles.y + " z: " + Input.gyro.attitude.eulerAngles.z);
+
+            //yRotation = Input.gyro.attitude.eulerAngles.y;
+            xRotation = (Input.gyro.attitude.eulerAngles.x);
+            //zRotation = Input.gyro.attitude.eulerAngles.z;
+
+            x_t.text = "" + xRotation;
+            //y_t.text = "" + yRotation;
+            //z_t.text = "" + zRotation;
+            Trackable.transform.eulerAngles = new Vector3(xRotation, 0, 0);
+            //Trackable.transform.localRotation = new Quaternion(0, Input.gyro.attitude.x, 0, 0);
+            y_t.text = "" + modelIndex;
         }
+    }
+    Quaternion modelRotation;
+    bool placedModel= true;
+    void LateUpdate()
+    {
+        if (_isTracking && !placedModel)
+        {
+            if (Input.touchCount != 0 || Input.GetMouseButtonDown(0))
+            {
+                GameObject modelPrefab = Models[modelIndex];
+                model = Instantiate(modelPrefab).transform;
+                //model.GetComponentInChildren<MeshRenderer>().material = mat;
+                _activeModels.Add(model.gameObject);
+                var cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+                Plane p = new Plane(Vector3.up, Vector3.zero);
+                float enter;
+                if (p.Raycast(cameraRay, out enter))
+                {
+                    model.position = cameraRay.GetPoint(enter);
+                    placedModel = true;
+                    modelPlacementText.text = "Model Placed";
+                }
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
+            }
+            
+           
+        }
+        
     }
 
     #region UI Events
     public void OnInitializeButtonClicked() {
 		Tracker.SetState(InstantTrackingState.Tracking);
-	}
+        placedModel = false;
+        _currentDeviceHeightAboveGround = 2;
+        HeightLabel.text = string.Format("{0:0.##} m", _currentDeviceHeightAboveGround);
+        Tracker.DeviceHeightAboveGround = _currentDeviceHeightAboveGround;
+    }
+    float modelScale;
 
-	public void OnHeightValueChanged(float newHeightValue) {
+    public void OnHeightValueChanged(float newHeightValue) {
 		_currentDeviceHeightAboveGround = newHeightValue;
 		HeightLabel.text = string.Format("{0:0.##} m", _currentDeviceHeightAboveGround);
 		Tracker.DeviceHeightAboveGround = _currentDeviceHeightAboveGround;
 	}
+    GameObject modelPrfb;
+    public void OnScaleChanged(float newScaleValue)
+    {
+        if (model != null)
+        {
+            y_t.text = "Scale: " + newScaleValue;
+            modelScale = newScaleValue;
+            if (modelScale == 2 && modelIndex != 0)
+            {
 
-	public void OnBeginDrag (int modelIndex) {
+                Vector3 pos = model.transform.position;
+                foreach (var model in _activeModels)
+                {
+                    Destroy(model);
+                }
+                modelIndex = 0;
+                _activeModels.Clear();
+                modelPrfb = Models[modelIndex];
+                model = Instantiate(modelPrfb).transform;
+                _activeModels.Add(model.gameObject);
+                model.position = pos;
+
+                z_t.text = "Model changed to Model " + modelIndex;
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
+            }
+            else if (modelScale == 3 && modelIndex != 1)
+            {
+
+                Vector3 pos = model.transform.position;
+                foreach (var model in _activeModels)
+                {
+                    Destroy(model);
+                }
+                modelIndex = 1;
+                _activeModels.Clear();
+                modelPrfb = Models[modelIndex];
+                model = Instantiate(modelPrfb).transform;
+                _activeModels.Add(model.gameObject);
+                model.position = pos;
+
+                z_t.text = "Model changed to Model " + modelIndex;
+
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
+            }
+            else if (modelScale == 4 && modelIndex != 2)
+            {
+
+                Vector3 pos = model.transform.position;
+                foreach (var model in _activeModels)
+                {
+                    Destroy(model);
+                }
+                modelIndex = 2;
+                _activeModels.Clear();
+                modelPrfb = Models[modelIndex];
+                model = Instantiate(modelPrfb).transform;
+                _activeModels.Add(model.gameObject);
+                model.position = pos;
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                z_t.text = "Model changed to Model " + modelIndex;
+            }
+            else if (modelScale == 5 && modelIndex != 3)
+            {
+                Vector3 pos = model.transform.position;
+                foreach (var model in _activeModels)
+                {
+                    Destroy(model);
+                }
+                modelIndex = 3;
+                _activeModels.Clear();
+                modelPrfb = Models[modelIndex];
+                model = Instantiate(modelPrfb).transform;
+                _activeModels.Add(model.gameObject);
+                model.position = pos;
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                z_t.text = "Model changed to Model " + modelIndex;
+            }
+
+            model.transform.localScale = Vector3.one * newScaleValue;
+        }
+        
+    }
+    int modelIndex = 0;
+    public void OnSelectModel()
+    {
+        if (_isTracking)
+        {
+            // Create object
+            GameObject modelPrefab = Models[modelIndex];
+            model = Instantiate(modelPrefab).transform;
+            //model.GetComponentInChildren<MeshRenderer>().material = mat;
+            _activeModels.Add(model.gameObject);
+            // Set model position at touch position
+            var cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Plane p = new Plane(Vector3.up, Vector3.zero);
+            float enter;
+            if (p.Raycast(cameraRay, out enter))
+            {
+                model.position = cameraRay.GetPoint(enter);
+            }
+
+            // Set model orientation to face toward the camera
+            Quaternion modelRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(-Camera.main.transform.forward, Vector3.up), Vector3.up);
+            model.rotation = modelRotation;
+
+            _moveController.SetMoveObject(model);
+        }
+    }
+    public void OnBeginDrag () {
 		if (_isTracking) {
 			// Create object
 			GameObject modelPrefab = Models[modelIndex];
@@ -96,6 +267,7 @@ public class InstantTrackerController : SampleController
 	public override void OnBackButtonClicked() {
 		if (_currentState == InstantTrackingState.Initializing) {
 			base.OnBackButtonClicked();
+            placedModel = false;
 		} else {
 			Tracker.SetState(InstantTrackingState.Initializing);
 		}
@@ -132,6 +304,7 @@ public class InstantTrackerController : SampleController
 		if (newState == InstantTrackingState.Tracking) {
 			InitializationControls.SetActive(false);
 			ButtonDock.SetActive(true);
+           // _gridRenderer.enabled = false;
 		} else {
 			foreach (var model in _activeModels) {
 				Destroy(model);
@@ -140,8 +313,10 @@ public class InstantTrackerController : SampleController
 
 			InitializationControls.SetActive(true);
 			ButtonDock.SetActive(false);
-		}
-		_gridRenderer.enabled = true;
-	}
+
+        }
+
+        _gridRenderer.enabled = true;
+    }
 	#endregion
 }
