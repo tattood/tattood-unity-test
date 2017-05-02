@@ -63,27 +63,45 @@ public class InstantTrackerController : SampleController
         OnHeightValueChanged(2f);
     }
     float yRotation, xRotation, zRotation;
+    Quaternion lookRotation;
+    float rebalanceFreq;
     private void Update()
     {
-        if (Input.gyro != null)
+        rebalanceFreq += Time.deltaTime;
+        if (rebalanceFreq == 0.05f)
         {
-            Debug.Log("x: "+ Input.gyro.attitude.eulerAngles.x + " y: " + Input.gyro.attitude.eulerAngles.y + " z: " + Input.gyro.attitude.eulerAngles.z);
+            rebalanceFreq = 0;
+            if (Input.gyro != null)
+            {
+                Debug.Log("x: " + Input.gyro.attitude.eulerAngles.x + " y: " + Input.gyro.attitude.eulerAngles.y + " z: " + Input.gyro.attitude.eulerAngles.z);
 
-            //yRotation = Input.gyro.attitude.eulerAngles.y;
-            xRotation = (Input.gyro.attitude.eulerAngles.x);
-            //zRotation = Input.gyro.attitude.eulerAngles.z;
+                yRotation = Input.gyro.attitude.eulerAngles.y;
+                xRotation = (Input.gyro.attitude.eulerAngles.x);
+                //zRotation = Input.gyro.attitude.eulerAngles.z;
 
-            x_t.text = "" + xRotation;
-            //y_t.text = "" + yRotation;
-            //z_t.text = "" + zRotation;
-            Trackable.transform.eulerAngles = new Vector3(xRotation, 0, 0);
-            //Trackable.transform.localRotation = new Quaternion(0, Input.gyro.attitude.x, 0, 0);
-            y_t.text = "" + modelIndex;
+                x_t.text = "" + xRotation;
+                //y_t.text = "" + yRotation;
+                //z_t.text = "" + zRotation;
+                //Trackable.transform.eulerAngles = new Vector3(xRotation, 0, 0);
+                //Trackable.transform.localRotation = new Quaternion(0, Input.gyro.attitude.x, 0, 0);
+                Trackable.transform.rotation = Quaternion.Euler(new Vector3(xRotation, yRotation, 0));
+                //lookRotation = Quaternion.LookRotation(-Camera.main.transform.forward);
+                //lookRotation.z = 0; 
+                //Trackable.transform.rotation = lookRotation;
+                y_t.text = "" + modelIndex;
+            }
         }
+        
     }
     Quaternion modelRotation;
     bool placedModel= true;
     void LateUpdate()
+    {
+        //placeWithTouch();
+
+    }
+    
+    public void placeWithTouch()
     {
         if (_isTracking && !placedModel)
         {
@@ -106,10 +124,9 @@ public class InstantTrackerController : SampleController
                 model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
                 z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
             }
-            
-           
+
+
         }
-        
     }
 
     #region UI Events
@@ -119,6 +136,20 @@ public class InstantTrackerController : SampleController
         _currentDeviceHeightAboveGround = 2;
         HeightLabel.text = string.Format("{0:0.##} m", _currentDeviceHeightAboveGround);
         Tracker.DeviceHeightAboveGround = _currentDeviceHeightAboveGround;
+        placeToMiddle();
+    }
+    public void placeToMiddle()
+    {
+        GameObject modelPrefab = Models[modelIndex];
+        model = Instantiate(modelPrefab).transform;
+        //model.GetComponentInChildren<MeshRenderer>().material = mat;
+        _activeModels.Add(model.gameObject);
+        model.position = Vector3.zero;
+        placedModel = true;
+        modelPlacementText.text = "Model Placed";
+        model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
+        model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
+        z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
     }
     float modelScale;
 
@@ -151,7 +182,7 @@ public class InstantTrackerController : SampleController
 
                 z_t.text = "Model changed to Model " + modelIndex;
                 model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
-                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
                 z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
             }
             else if (modelScale == 3 && modelIndex != 1)
@@ -172,7 +203,7 @@ public class InstantTrackerController : SampleController
                 z_t.text = "Model changed to Model " + modelIndex;
 
                 model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
-                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
                 z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
             }
             else if (modelScale == 4 && modelIndex != 2)
@@ -190,7 +221,7 @@ public class InstantTrackerController : SampleController
                 _activeModels.Add(model.gameObject);
                 model.position = pos;
                 model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
-                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
                 z_t.text = "Model changed to Model " + modelIndex;
             }
             else if (modelScale == 5 && modelIndex != 3)
@@ -207,13 +238,35 @@ public class InstantTrackerController : SampleController
                 _activeModels.Add(model.gameObject);
                 model.position = pos;
                 model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
-                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, 0.1f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
+                z_t.text = "Model changed to Model " + modelIndex;
+            }
+            else if (modelScale == 6 && modelIndex != 4)
+            {
+                Vector3 pos = model.transform.position;
+                foreach (var model in _activeModels)
+                {
+                    Destroy(model);
+                }
+                modelIndex = 4;
+                _activeModels.Clear();
+                modelPrfb = Models[modelIndex];
+                model = Instantiate(modelPrfb).transform;
+                _activeModels.Add(model.gameObject);
+                model.position = pos;
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
+                model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
                 z_t.text = "Model changed to Model " + modelIndex;
             }
 
-            model.transform.localScale = Vector3.one * newScaleValue;
         }
         
+    }
+    public void ScaleModel(string numToScale)
+    {
+        float result;
+        float.TryParse(numToScale, out result);
+        model.localScale =  result * Vector3.one;
     }
     int modelIndex = 0;
     public void OnSelectModel()

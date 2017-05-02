@@ -1,7 +1,7 @@
 fileFormatVersion: 2
-guid: 4b4b65c540ca2e04eadfac7bd2dcd736
-timeCreated: 1493150212
-licenseType: Pro
+guid: 8f41a8904f7c8c843ae02518aa242a3d
+timeCreated: 1493751802
+licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
@@ -9,11 +9,10 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: pCylinder1
-    6400000: //RootNode
+    4300000: pPlane4
     9500000: //RootNode
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
   animations:
@@ -44,7 +43,7 @@ ModelImporter:
     generateSecondaryUV: 0
     useFileUnits: 1
     optimizeMeshForGPU: 1
-    keepQuads: 1
+    keepQuads: 0
     weldVertices: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
