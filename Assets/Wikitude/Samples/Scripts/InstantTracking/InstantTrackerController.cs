@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Wikitude;
-using UnityEngine.UI;
+using System.IO;
 
 public class InstantTrackerController : SampleController 
 {
@@ -138,11 +138,21 @@ public class InstantTrackerController : SampleController
         Tracker.DeviceHeightAboveGround = _currentDeviceHeightAboveGround;
         placeToMiddle();
     }
+    public Material mat;
+
+    public void changeMaterial(string imagePath)
+    {
+        string fileName = Application.persistentDataPath + "/" + imagePath;
+        var imageBytes = File.ReadAllBytes(fileName);
+        Texture2D imageTexture = new Texture2D(Screen.width, Screen.height);
+        imageTexture.LoadImage(imageBytes);
+        mat.mainTexture = imageTexture;
+    }
     public void placeToMiddle()
     {
         GameObject modelPrefab = Models[modelIndex];
         model = Instantiate(modelPrefab).transform;
-        //model.GetComponentInChildren<MeshRenderer>().material = mat;
+        model.gameObject.GetComponent<MeshRenderer>().material = mat;
         _activeModels.Add(model.gameObject);
         model.position = Vector3.zero;
         placedModel = true;
