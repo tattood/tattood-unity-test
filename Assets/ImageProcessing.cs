@@ -10,11 +10,10 @@ public class ImageProcessing : MonoBehaviour {
     public Image IPElement;
     public GameObject a;
     // Use this for initialization
-    void Start () {
+    public static void IP(GameObject model) {
         Application.CaptureScreenshot(Application.persistentDataPath + "/" + "inputImage.png", 2);
         var fileName = Application.persistentDataPath + "/" + "inputImage.png";
 
-        Debug.Log(fileName);
         var imageBytes = File.ReadAllBytes(fileName);
         var imageTexture = new Texture2D(Screen.width, Screen.height);
         imageTexture.LoadImage(imageBytes);
@@ -23,7 +22,7 @@ public class ImageProcessing : MonoBehaviour {
         IplImage sourceImage = Cv.LoadImage(fileName, LoadMode.GrayScale);
         IplImage dst = Cv.CreateImage(new CvSize(sourceImage.Width, sourceImage.Height), BitDepth.U8, 1);
         IplImage thresholdDst = Cv.CreateImage(new CvSize(sourceImage.Width, sourceImage.Height), BitDepth.U8, 1);
-        Cv.ShowImage("source image", sourceImage);
+        //Cv.ShowImage("source image", sourceImage);
         CvMat midCol = sourceImage.GetCol(sourceImage.Width/2);
 
         float avg = 0;
@@ -61,11 +60,11 @@ public class ImageProcessing : MonoBehaviour {
 
         //Cv.InRange(sourceImage, 150f, 250f, thresholdDst);
 
-        Cv.ShowImage("thresholded image ", thresholdDst);
+        //Cv.ShowImage("thresholded image ", thresholdDst);
 
         Cv.Canny(thresholdDst, dst, 200, 250);
 
-        Cv.ShowImage("edges", dst);
+        //Cv.ShowImage("edges", dst);
 
 
         IplImage output = new IplImage(dst.GetSize(), BitDepth.U8, 3);//image.Depth, 1);
@@ -116,37 +115,23 @@ public class ImageProcessing : MonoBehaviour {
                     }
                 }
             }
-            Cv.DrawRect(outputRGB, maxBoundingBox, CvColor.Green, 5);
-            Cv.ShowImage("rect", outputRGB);
+            //Cv.DrawRect(outputRGB, maxBoundingBox, CvColor.Green, 5);
+            //Cv.ShowImage("rect", outputRGB);
         }
 
 
-        Debug.Log("Heleloy" + contoursRaw.Total);
+        //Debug.Log("Heleloy" + contoursRaw.Total);
 
         CvBox2D rect = Cv.FitEllipse2(contoursRaw);
 
 
-        print("asdljnsaod" + ((rect.Angle + 270) % 360));
+        print("Angle" + ((rect.Angle + 270) % 360));
+
+        model.transform.Rotate(Vector3.forward * rect.Angle);
 
 
         //Cv.DrawContours(outputRGB, anan, CvColor.White, CvColor.Green, 0, -1, LineType.AntiAlias);
 
-        float[] line = new float[4];
-
-        Cv.FitLine(contoursRaw, DistanceType.L2, 0, 0.01, 0.01, line);
-
-        for (int i = 0; i < line.Length; i++)
-        {
-            print("Ananzaaaa: " + line[i]);
-        }
-
-        //Cv.DrawLine(thresholdDst, new CvPoint((int)line[0], (int)line[1]), new CvPoint((int)line[2], (int)line[3]), Scalar.BlueViolet);
-
-        Cv.Line(thresholdDst, new CvPoint((int)line[0], (int)line[1]), new CvPoint((int)line[2], (int)line[3]), Scalar.BlueViolet, 4);
-        Cv.ShowImage("thresholded lined image ", thresholdDst);
-
-        print("Angle ı görelim: " + System.Math.Atan2((line[3] - line[1]), (line[2] - line[0])));
-    
         //CvBox2D box = Cv.FitEllipse2(contoursRaw);
         //Debug.Log(box.Angle);
         CvMat edges = new CvMat(dst.Size.Height, dst.Size.Width, MatrixType.U8C1);
@@ -194,7 +179,7 @@ public class ImageProcessing : MonoBehaviour {
         //Debug.Log("x: " + pca_anaylsis.Eigenvectors.At<double>(0, 0));
         //Debug.Log("y: " + pca_anaylsis.Eigenvectors.At<double>(0, 1));
 
-        CvMat edgesmidcol = edges.GetCol(edges.Width/2);
+        CvMat edgesmidcol = edges.GetCol(edges.Width / 2);
         Debug.Log(edgesmidcol[200]);
 
         int count = 1;
@@ -203,12 +188,31 @@ public class ImageProcessing : MonoBehaviour {
         {
             count++;
             index++;
-            if (index == edges.Height-1)
+            if (index == edges.Height - 1)
             {
                 break;
             }
         }
-        Debug.Log(count);
+        if (count <= 100)
+        {
+            model.transform.localScale = Vector3.one * 1;
+        }
+        else if (count > 100 && count <= 200)
+        {
+            model.transform.localScale = Vector3.one * 1.5f;
+        }
+        else if (count > 200 && count <= 300)
+        {
+            model.transform.localScale = Vector3.one * 2;
+        }
+        else if (count > 300 && count <= 400)
+        {
+            model.transform.localScale = Vector3.one * 2.5f;
+        }
+        else
+        {
+            model.transform.localScale = Vector3.one * 3;
+        }
 
         //z
         //Debug.Log(edges);

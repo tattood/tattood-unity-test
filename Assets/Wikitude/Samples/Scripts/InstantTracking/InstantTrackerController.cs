@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using Wikitude;
 using System.IO;
+using System;
+using System.Text;
 
 public class InstantTrackerController : SampleController 
 {
@@ -142,11 +144,11 @@ public class InstantTrackerController : SampleController
 
     public void changeMaterial(string imagePath)
     {
-        string fileName = Application.persistentDataPath + "/" + imagePath;
-        var imageBytes = File.ReadAllBytes(fileName);
+        byte[] decodedBytes = Convert.FromBase64String(imagePath);
         Texture2D imageTexture = new Texture2D(Screen.width, Screen.height);
-        imageTexture.LoadImage(imageBytes);
+        imageTexture.LoadImage(decodedBytes);
         mat.mainTexture = imageTexture;
+        mat.mainTexture.wrapMode = TextureWrapMode.Clamp;
     }
     public void placeToMiddle()
     {
@@ -160,6 +162,8 @@ public class InstantTrackerController : SampleController
         model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale = new Vector2(1.5f, 1.5f);
         model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
         z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
+        ImageProcessing.IP(model.gameObject);
+        
     }
     float modelScale;
 
