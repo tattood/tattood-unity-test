@@ -3,7 +3,7 @@
 public class GridRenderer : MonoBehaviour 
 {
 	private static Color TargetColor = new Color(1.0f, 0.525f, 0, 0.5f);
-	private static Color GridColor = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+	private static Color GridColor = new Color(1.0f, 1.0f, 1.0f, 0f);
 	private static Color MainLineColor = GridColor * 0.9f;
 	private static Color UnitLineColor = GridColor * 0.75f;
 

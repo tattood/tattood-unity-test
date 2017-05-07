@@ -69,6 +69,8 @@ public class InstantTrackerController : SampleController
     float rebalanceFreq;
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Escape))
+            Application.Quit();
         rebalanceFreq += Time.deltaTime;
         if (rebalanceFreq == 0.05f)
         {
