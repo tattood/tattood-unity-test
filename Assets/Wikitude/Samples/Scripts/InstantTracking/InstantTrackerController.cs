@@ -6,54 +6,57 @@ using System.IO;
 using System;
 using System.Text;
 
-public class InstantTrackerController : SampleController 
+public class InstantTrackerController : SampleController
 {
-	public GameObject ButtonDock;
-	public GameObject InitializationControls;
-	public Text HeightLabel;
-	public Text ScaleLabel;
+    public GameObject ButtonDock;
+    public GameObject InitializationControls;
+    public Text HeightLabel;
+    public Text ScaleLabel;
 
     //public Material mat;
     private Transform model;
     private Gyroscope gyro;
 
-	public InstantTracker Tracker;
+    public InstantTracker Tracker;
     public GameObject Trackable;
     public Text x_t, y_t, z_t, modelPlacementText;
 
     public List<Button> Buttons;
-	public List<GameObject> Models;
+    public List<GameObject> Models;
 
-	public Image ActivityIndicator;
+    public Image ActivityIndicator;
 
-	public Color EnabledColor = new Color(0.2f, 0.75f, 0.2f, 0.8f);
-	public Color DisabledColor = new Color(1.0f, 0.2f, 0.2f, 0.8f);
+    public Color EnabledColor = new Color(0.2f, 0.75f, 0.2f, 0.8f);
+    public Color DisabledColor = new Color(1.0f, 0.2f, 0.2f, 0.8f);
 
-	private float _currentDeviceHeightAboveGround = 1.0f;
+    private float _currentDeviceHeightAboveGround = 1.0f;
 
-	private MoveController _moveController;
-	private GridRenderer _gridRenderer;
+    private MoveController _moveController;
+    private GridRenderer _gridRenderer;
 
-	private HashSet<GameObject> _activeModels = new HashSet<GameObject>();
-	private InstantTrackingState _currentState = InstantTrackingState.Initializing;
-	private bool _isTracking = false;
+    private HashSet<GameObject> _activeModels = new HashSet<GameObject>();
+    private InstantTrackingState _currentState = InstantTrackingState.Initializing;
+    private bool _isTracking = false;
 
-	public HashSet<GameObject> ActiveModels {
-		get { 
-			return _activeModels;
-		}
-	}
+    public HashSet<GameObject> ActiveModels
+    {
+        get
+        {
+            return _activeModels;
+        }
+    }
     //public GameObject initialModel;
     //void Start()
     //{
     //    Quaternion initalModelRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(-Camera.main.transform.forward, Vector3.up), Vector3.up);
     //    initialModel.transform.rotation = initalModelRotation;
     //}
-	private void Awake() {
-		Application.targetFrameRate = 60;
+    private void Awake()
+    {
+        Application.targetFrameRate = 60;
 
-		_moveController = GetComponent<MoveController>();
-		_gridRenderer = GetComponent<GridRenderer>();
+        _moveController = GetComponent<MoveController>();
+        _gridRenderer = GetComponent<GridRenderer>();
         if (Input.gyro != null)
         {
             gyro = Input.gyro;
@@ -95,16 +98,16 @@ public class InstantTrackerController : SampleController
                 y_t.text = "" + modelIndex;
             }
         }
-        
+
     }
     Quaternion modelRotation;
-    bool placedModel= true;
+    bool placedModel = true;
     void LateUpdate()
     {
         //placeWithTouch();
 
     }
-    
+
     public void placeWithTouch()
     {
         if (_isTracking && !placedModel)
@@ -134,8 +137,9 @@ public class InstantTrackerController : SampleController
     }
 
     #region UI Events
-    public void OnInitializeButtonClicked() {
-		Tracker.SetState(InstantTrackingState.Tracking);
+    public void OnInitializeButtonClicked()
+    {
+        Tracker.SetState(InstantTrackingState.Tracking);
         placedModel = false;
         _currentDeviceHeightAboveGround = 2;
         HeightLabel.text = string.Format("{0:0.##} m", _currentDeviceHeightAboveGround);
@@ -147,8 +151,9 @@ public class InstantTrackerController : SampleController
     public void changeMaterial(string imagePath)
     {
         byte[] decodedBytes = Convert.FromBase64String(imagePath);
+        ImageProcessing.Filter(decodedBytes);
         Texture2D imageTexture = new Texture2D(Screen.width, Screen.height);
-        imageTexture.LoadImage(decodedBytes);
+        imageTexture.LoadImage(ImageProcessing.Filter(decodedBytes));
         mat.mainTexture = imageTexture;
         mat.mainTexture.wrapMode = TextureWrapMode.Clamp;
     }
@@ -165,15 +170,16 @@ public class InstantTrackerController : SampleController
         model.gameObject.GetComponent<MeshRenderer>().material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
         z_t.text = "" + model.gameObject.GetComponent<MeshRenderer>().material.mainTextureScale;
         ImageProcessing.IP(model.gameObject);
-        
+
     }
     float modelScale;
 
-    public void OnHeightValueChanged(float newHeightValue) {
-		_currentDeviceHeightAboveGround = newHeightValue;
-		HeightLabel.text = string.Format("{0:0.##} m", _currentDeviceHeightAboveGround);
-		Tracker.DeviceHeightAboveGround = _currentDeviceHeightAboveGround;
-	}
+    public void OnHeightValueChanged(float newHeightValue)
+    {
+        _currentDeviceHeightAboveGround = newHeightValue;
+        HeightLabel.text = string.Format("{0:0.##} m", _currentDeviceHeightAboveGround);
+        Tracker.DeviceHeightAboveGround = _currentDeviceHeightAboveGround;
+    }
     GameObject modelPrfb;
     public void OnScaleChanged(float newScaleValue)
     {
@@ -276,13 +282,13 @@ public class InstantTrackerController : SampleController
             }
 
         }
-        
+
     }
     public void ScaleModel(string numToScale)
     {
         float result;
         float.TryParse(numToScale, out result);
-        model.localScale =  result * Vector3.one;
+        model.localScale = result * Vector3.one;
     }
     int modelIndex = 0;
     public void OnSelectModel()
@@ -310,82 +316,99 @@ public class InstantTrackerController : SampleController
             _moveController.SetMoveObject(model);
         }
     }
-    public void OnBeginDrag () {
-		if (_isTracking) {
-			// Create object
-			GameObject modelPrefab = Models[modelIndex];
-			model = Instantiate(modelPrefab).transform;
+    public void OnBeginDrag()
+    {
+        if (_isTracking)
+        {
+            // Create object
+            GameObject modelPrefab = Models[modelIndex];
+            model = Instantiate(modelPrefab).transform;
             //model.GetComponentInChildren<MeshRenderer>().material = mat;
             _activeModels.Add(model.gameObject);
-			// Set model position at touch position
-			var cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-			Plane p = new Plane(Vector3.up, Vector3.zero);
-			float enter;
-			if (p.Raycast(cameraRay, out enter)) {
-				model.position = cameraRay.GetPoint(enter);
-			}
+            // Set model position at touch position
+            var cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Plane p = new Plane(Vector3.up, Vector3.zero);
+            float enter;
+            if (p.Raycast(cameraRay, out enter))
+            {
+                model.position = cameraRay.GetPoint(enter);
+            }
 
-			// Set model orientation to face toward the camera
-			Quaternion modelRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(-Camera.main.transform.forward, Vector3.up), Vector3.up);
-			model.rotation = modelRotation;
+            // Set model orientation to face toward the camera
+            Quaternion modelRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(-Camera.main.transform.forward, Vector3.up), Vector3.up);
+            model.rotation = modelRotation;
 
-			_moveController.SetMoveObject(model);
-		}
-	}
+            _moveController.SetMoveObject(model);
+        }
+    }
 
-	public override void OnBackButtonClicked() {
-		if (_currentState == InstantTrackingState.Initializing) {
-			base.OnBackButtonClicked();
+    public override void OnBackButtonClicked()
+    {
+        if (_currentState == InstantTrackingState.Initializing)
+        {
+            base.OnBackButtonClicked();
             placedModel = false;
-		} else {
-			Tracker.SetState(InstantTrackingState.Initializing);
-		}
-	}
-	#endregion
+        }
+        else
+        {
+            Tracker.SetState(InstantTrackingState.Initializing);
+        }
+    }
+    #endregion
 
-	#region Tracker Events
-	public void OnEnterFieldOfVision(string target) {
-		SetSceneActive(true);
-	}
+    #region Tracker Events
+    public void OnEnterFieldOfVision(string target)
+    {
+        SetSceneActive(true);
+    }
 
-	public void OnExitFieldOfVision(string target) {
-		SetSceneActive(false);
-	}
+    public void OnExitFieldOfVision(string target)
+    {
+        SetSceneActive(false);
+    }
 
-	private void SetSceneActive(bool active) {
-		foreach (var button in Buttons) {
-			button.interactable = active;
-		}
+    private void SetSceneActive(bool active)
+    {
+        foreach (var button in Buttons)
+        {
+            button.interactable = active;
+        }
 
-		foreach (var model in _activeModels) {
-			model.SetActive(active);
-		}
+        foreach (var model in _activeModels)
+        {
+            model.SetActive(active);
+        }
 
-		ActivityIndicator.color = active ? EnabledColor : DisabledColor;
-		
-		_gridRenderer.enabled = active;
-		_isTracking = active;
-	}
+        ActivityIndicator.color = active ? EnabledColor : DisabledColor;
 
-	public void OnStateChanged(InstantTrackingState newState) {
-		Tracker.DeviceHeightAboveGround = _currentDeviceHeightAboveGround;
-		_currentState = newState;
-		if (newState == InstantTrackingState.Tracking) {
-			InitializationControls.SetActive(false);
-			ButtonDock.SetActive(true);
-           // _gridRenderer.enabled = false;
-		} else {
-			foreach (var model in _activeModels) {
-				Destroy(model);
-			}
-			_activeModels.Clear();
+        _gridRenderer.enabled = active;
+        _isTracking = active;
+    }
 
-			InitializationControls.SetActive(true);
-			ButtonDock.SetActive(false);
+    public void OnStateChanged(InstantTrackingState newState)
+    {
+        Tracker.DeviceHeightAboveGround = _currentDeviceHeightAboveGround;
+        _currentState = newState;
+        if (newState == InstantTrackingState.Tracking)
+        {
+            InitializationControls.SetActive(false);
+            ButtonDock.SetActive(true);
+            // _gridRenderer.enabled = false;
+        }
+        else
+        {
+            foreach (var model in _activeModels)
+            {
+                Destroy(model);
+            }
+            _activeModels.Clear();
+
+            InitializationControls.SetActive(true);
+            ButtonDock.SetActive(false);
 
         }
 
         _gridRenderer.enabled = true;
     }
-	#endregion
+    #endregion
 }
